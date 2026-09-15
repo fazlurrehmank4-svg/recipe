@@ -5,10 +5,12 @@ import { HomePage } from './components/HomePage';
 import { CountryDetail } from './components/CountryDetail';
 import { FavoritesPage } from './components/FavoritesPage';
 import { initDatabase } from './db/database';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 
-export default function App() {
+function AppContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedContinent, setSelectedContinent] = useState('All');
+  const { t } = useLanguage();
 
   useEffect(() => {
     initDatabase();
@@ -46,10 +48,18 @@ export default function App() {
 
         {/* Footer */}
         <footer className="mt-12 py-8 border-t border-slate-200 dark:border-slate-800 text-center text-xs text-slate-500 dark:text-slate-400">
-          <p>© {new Date().getFullYear()} World Flavors PWA. Exploring culinary traditions of 194 UN countries.</p>
+          <p>© {new Date().getFullYear()} {t.footerText}</p>
         </footer>
 
       </div>
     </Router>
+  );
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   );
 }

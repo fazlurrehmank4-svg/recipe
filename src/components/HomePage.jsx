@@ -4,10 +4,20 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
 import { Utensils, ChevronRight, Globe2, Compass } from 'lucide-react';
 import { CountryFlag } from './CountryFlag';
-
-const CONTINENTS = ['All', 'Africa', 'Americas', 'Asia', 'Europe', 'Oceania'];
+import { useLanguage } from '../context/LanguageContext';
 
 export function HomePage({ searchQuery, selectedContinent, setSelectedContinent }) {
+  const { t } = useLanguage();
+
+  const CONTINENTS = [
+    { key: 'All', label: t.allContinents },
+    { key: 'Africa', label: t.africa },
+    { key: 'Americas', label: t.americas },
+    { key: 'Asia', label: t.asia },
+    { key: 'Europe', label: t.europe },
+    { key: 'Oceania', label: t.oceania }
+  ];
+
   // Query all countries and dishes from IndexedDB
   const countries = useLiveQuery(() => db.countries.toArray(), []);
   const dishes = useLiveQuery(() => db.dishes.toArray(), []);
@@ -51,31 +61,31 @@ export function HomePage({ searchQuery, selectedContinent, setSelectedContinent 
           <div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
               <Compass className="w-7 h-7 text-orange-500" />
-              Explore Global Cuisines
+              {t.exploreTitle}
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Select a country to discover 10 authentic popular dishes and local recipes.
+              {t.exploreSubtitle}
             </p>
           </div>
 
           <div className="text-sm font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3.5 py-1.5 rounded-full self-start sm:self-auto">
-            Showing <span className="text-orange-600 dark:text-orange-400 font-bold">{filteredCountries.length}</span> / 194 UN Nations
+            {t.showingCount} <span className="text-orange-600 dark:text-orange-400 font-bold">{filteredCountries.length}</span> / {t.unNations}
           </div>
         </div>
 
         {/* Continent Filter Tabs */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-          {CONTINENTS.map(continent => (
+          {CONTINENTS.map(c => (
             <button
-              key={continent}
-              onClick={() => setSelectedContinent(continent)}
+              key={c.key}
+              onClick={() => setSelectedContinent(c.key)}
               className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
-                selectedContinent === continent
+                selectedContinent === c.key
                   ? 'bg-orange-600 text-white shadow-md shadow-orange-500/20 scale-105'
                   : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'
               }`}
             >
-              {continent === 'All' ? '🌐 All Continents' : continent}
+              {c.key === 'All' ? `🌐 ${c.label}` : c.label}
             </button>
           ))}
         </div>
@@ -92,15 +102,15 @@ export function HomePage({ searchQuery, selectedContinent, setSelectedContinent 
         /* Empty Search State */
         <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 my-8">
           <Globe2 className="w-12 h-12 text-slate-400 mx-auto mb-3 animate-bounce" />
-          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">No countries or dishes found</h3>
+          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">{t.noResultsTitle}</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
-            Try adjusting your search query or continent filter to find what you're looking for.
+            {t.noResultsSubtitle}
           </p>
           <button
             onClick={() => { setSelectedContinent('All'); }}
             className="mt-4 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-full text-xs font-bold transition"
           >
-            Reset Filters
+            {t.resetFilters}
           </button>
         </div>
       ) : (
@@ -129,10 +139,10 @@ export function HomePage({ searchQuery, selectedContinent, setSelectedContinent 
               <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
                 <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
                   <Utensils className="w-3.5 h-3.5 text-orange-500" />
-                  <span>10 Dishes</span>
+                  <span>{t.dishesCount}</span>
                 </div>
-                <div className="flex items-center text-orange-500 font-bold group-hover:translate-x-1 transition-transform">
-                  Explore <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                <div className="flex items-center text-orange-500 font-bold group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform">
+                  {t.explore} <ChevronRight className="w-3.5 h-3.5 ml-0.5 rtl:rotate-180" />
                 </div>
               </div>
             </Link>

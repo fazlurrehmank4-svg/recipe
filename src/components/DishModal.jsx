@@ -1,8 +1,11 @@
 import React, { useEffect } from 'react';
 import { X, Heart, Tag, ExternalLink, CheckCircle, ChefHat, PlayCircle } from 'lucide-react';
 import { CountryFlag } from './CountryFlag';
+import { useLanguage } from '../context/LanguageContext';
 
 export function DishModal({ dish, isFav, onToggleFavorite, onClose }) {
+  const { t } = useLanguage();
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();
@@ -43,14 +46,14 @@ export function DishModal({ dish, isFav, onToggleFavorite, onClose }) {
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2.5 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white backdrop-blur-md transition-all shadow-lg hover:scale-105 z-10"
+            className="absolute top-4 ltr:right-4 rtl:left-4 p-2.5 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white backdrop-blur-md transition-all shadow-lg hover:scale-105 z-10"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
 
           {/* Category Tag */}
-          <div className="absolute top-4 left-4">
+          <div className="absolute top-4 ltr:left-4 rtl:right-4">
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-900/80 backdrop-blur-md text-white border border-white/20 capitalize shadow-lg">
               <Tag className="w-3.5 h-3.5 text-orange-400" />
               {dish.category}
@@ -73,7 +76,7 @@ export function DishModal({ dish, isFav, onToggleFavorite, onClose }) {
               </h2>
               {dish.localName && dish.localName !== dish.name && (
                 <p className="text-sm font-semibold text-orange-300 italic">
-                  Local name: "{dish.localName}"
+                  "{dish.localName}"
                 </p>
               )}
             </div>
@@ -86,7 +89,7 @@ export function DishModal({ dish, isFav, onToggleFavorite, onClose }) {
                   ? 'bg-rose-500 text-white scale-105'
                   : 'bg-slate-900/70 text-white hover:bg-rose-500 hover:scale-105'
               }`}
-              title={isFav ? "Remove from Favorites" : "Bookmark Dish"}
+              title={isFav ? t.favoriteRemoved : t.favoriteAdded}
             >
               <Heart className={`w-5 h-5 ${isFav ? 'fill-current' : ''}`} />
             </button>
@@ -97,9 +100,6 @@ export function DishModal({ dish, isFav, onToggleFavorite, onClose }) {
         <div className="p-6 sm:p-8 overflow-y-auto space-y-6">
           {/* Description */}
           <div>
-            <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
-              About this dish
-            </h3>
             <p className="text-slate-700 dark:text-slate-200 leading-relaxed text-base font-normal">
               {dish.description}
             </p>
@@ -108,7 +108,7 @@ export function DishModal({ dish, isFav, onToggleFavorite, onClose }) {
           {/* Key Ingredients */}
           <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
             <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">
-              Key Ingredients
+              {t.ingredients}
             </h3>
             <div className="flex flex-wrap gap-2">
               {dish.ingredients && dish.ingredients.map((ing, idx) => (
@@ -128,7 +128,7 @@ export function DishModal({ dish, isFav, onToggleFavorite, onClose }) {
             <div className="flex items-center gap-2 mb-4">
               <ChefHat className="w-5 h-5 text-orange-500" />
               <h3 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                Step-by-Step Recipe
+                {t.recipeSteps}
               </h3>
             </div>
             {dish.steps && dish.steps.length > 0 ? (
@@ -147,9 +147,7 @@ export function DishModal({ dish, isFav, onToggleFavorite, onClose }) {
                   </li>
                 ))}
               </ol>
-            ) : (
-              <p className="text-sm text-slate-500 italic">No instructions available.</p>
-            )}
+            ) : null}
           </div>
 
           {/* YouTube Recipe Video Link Button */}
@@ -162,8 +160,8 @@ export function DishModal({ dish, isFav, onToggleFavorite, onClose }) {
                 className="w-full inline-flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-lg hover:shadow-red-600/30 transition-all group"
               >
                 <PlayCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                <span>Watch Video Recipe on YouTube</span>
-                <ExternalLink className="w-4 h-4 ml-auto opacity-70" />
+                <span>{t.viewOnYoutube}</span>
+                <ExternalLink className="w-4 h-4 ltr:ml-auto rtl:mr-auto opacity-70" />
               </a>
             </div>
           )}
