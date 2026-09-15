@@ -1,22 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export function CountryFlag({ code, flag, className = "w-8 h-6" }) {
-  if (!code) return <span>{flag || '🏳️'}</span>;
+  const [imgError, setImgError] = useState(false);
 
-  const flagUrl = `https://flagcdn.com/w80/${code.toLowerCase()}.png`;
+  if (!code) return <span className="text-xl">{flag || '🏳️'}</span>;
+
+  const primaryFlagUrl = `https://flagcdn.com/w80/${code.toLowerCase()}.png`;
+  const secondaryFlagUrl = `https://flagcdn.com/${code.toLowerCase()}.svg`;
 
   return (
     <span className={`inline-flex items-center justify-center overflow-hidden rounded shadow-sm bg-slate-100 dark:bg-slate-800 shrink-0 ${className}`}>
-      <img
-        src={flagUrl}
-        alt={`${code} flag`}
-        className="w-full h-full object-cover"
-        loading="lazy"
-        onError={(e) => {
-          e.target.style.display = 'none';
-          e.target.parentElement.innerHTML = flag || '🏳️';
-        }}
-      />
+      {!imgError ? (
+        <img
+          src={primaryFlagUrl}
+          alt={`${code} flag`}
+          className="w-full h-full object-cover"
+          loading="lazy"
+          onError={(e) => {
+            if (e.target.src !== secondaryFlagUrl) {
+              e.target.src = secondaryFlagUrl;
+            } else {
+              setImgError(true);
+            }
+          }}
+        />
+      ) : (
+        <span className="text-xl font-bold">{flag || '🏳️'}</span>
+      )}
     </span>
   );
 }
