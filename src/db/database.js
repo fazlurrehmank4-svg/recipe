@@ -3,7 +3,7 @@ import countriesData from '../data/countries.json';
 
 export const db = new Dexie('WorldFlavorsDB');
 
-db.version(1).stores({
+db.version(2).stores({
   countries: 'code, name, continent',
   dishes: 'id, countryCode, name, localName, category',
   favorites: 'id, countryCode, name, addedAt'
@@ -12,8 +12,11 @@ db.version(1).stores({
 export async function initDatabase() {
   try {
     const countryCount = await db.countries.count();
-    if (countryCount === 0) {
-      console.log('Initializing IndexedDB with initial country and dish dataset...');
+    const dishCount = await db.dishes.count();
+    const sampleDish = await db.dishes.first();
+
+    if (countryCount === 0 || dishCount === 0 || !sampleDish || !sampleDish.steps) {
+      console.log('Populating/Updating IndexedDB database...');
 
       const allCountries = countriesData.countries.map(c => ({
         code: c.code,
@@ -36,12 +39,47 @@ export async function initDatabase() {
         }
       });
 
+      await db.countries.clear();
+      await db.dishes.clear();
       await db.countries.bulkAdd(allCountries);
       await db.dishes.bulkAdd(allDishes);
-      console.log('IndexedDB initialization complete.');
+      console.log('IndexedDB database update complete.');
     }
   } catch (error) {
     console.error('Error initializing IndexedDB:', error);
+    // Fallback in case of Dexie schema error
+    try {
+      await Dexie.delete('WorldFlavorsDB');
+      const newDb = new Dexie('WorldFlavorsDB');
+      newDb.version(2).stores({
+        countries: 'code, name, continent',
+        dishes: 'id, countryCode, name, localName, category',
+        favorites: 'id, countryCode, name, addedAt'
+      });
+      const allCountries = countriesData.countries.map(c => ({
+        code: c.code,
+        name: c.name,
+        continent: c.continent,
+        flag: c.flag
+      }));
+      const allDishes = [];
+      countriesData.countries.forEach(c => {
+        if (c.dishes && Array.isArray(c.dishes)) {
+          c.dishes.forEach(d => {
+            allDishes.push({
+              ...d,
+              countryCode: c.code,
+              countryName: c.name,
+              countryFlag: c.flag
+            });
+          });
+        }
+      });
+      await newDb.countries.bulkAdd(allCountries);
+      await newDb.dishes.bulkAdd(allDishes);
+    } catch (e) {
+      console.error('Fallback DB reset error:', e);
+    }
   }
 }
 

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
 import { Utensils, ChevronRight, Globe2, Compass } from 'lucide-react';
+import { CountryFlag } from './CountryFlag';
 
 const CONTINENTS = ['All', 'Africa', 'Americas', 'Asia', 'Europe', 'Oceania'];
 
@@ -113,9 +114,7 @@ export function HomePage({ searchQuery, selectedContinent, setSelectedContinent 
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-4xl select-none transform group-hover:scale-110 transition-transform">
-                    {country.flag}
-                  </span>
+                  <CountryFlag code={country.code} flag={country.flag} className="w-12 h-9 text-2xl" />
                   <div>
                     <h2 className="font-bold text-slate-900 dark:text-white group-hover:text-orange-500 transition-colors line-clamp-1">
                       {country.name}

@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, toggleFavorite } from '../db/database';
-import { Heart, Trash2, ArrowLeft, Tag, CheckCircle, Search, Utensils } from 'lucide-react';
+import { Heart, Trash2, ArrowLeft, Tag, CheckCircle, Search, Utensils, ChefHat, PlayCircle } from 'lucide-react';
+import { CountryFlag } from './CountryFlag';
+import { DishModal } from './DishModal';
 
 export function FavoritesPage() {
   const favorites = useLiveQuery(() => db.favorites.orderBy('addedAt').reverse().toArray(), []);
   const [filterQuery, setFilterQuery] = useState('');
+  const [selectedDish, setSelectedDish] = useState(null);
 
   if (!favorites) {
     return (
@@ -95,7 +98,8 @@ export function FavoritesPage() {
           {filteredFavorites.map((dish) => (
             <div
               key={dish.id}
-              className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+              onClick={() => setSelectedDish(dish)}
+              className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer group"
             >
               {/* Image & Header */}
               <div className="relative h-56 w-full bg-slate-100 dark:bg-slate-800">
@@ -103,32 +107,36 @@ export function FavoritesPage() {
                   src={dish.image}
                   alt={dish.name}
                   loading="lazy"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80";
                   }}
                 />
 
-                <div className="absolute top-4 left-4 flex gap-2">
+                <div className="absolute top-4 left-4 flex items-center gap-2">
                   <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-slate-900/80 backdrop-blur-md text-white border border-white/20 capitalize shadow-md">
                     <Tag className="w-3 h-3 text-orange-400" />
                     {dish.category}
                   </span>
-                  {dish.countryFlag && (
+                  {dish.countryCode && (
                     <Link
                       to={`/country/${dish.countryCode}`}
-                      className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-orange-600/90 backdrop-blur-md text-white border border-white/20 shadow-md hover:bg-orange-500 transition"
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-orange-600/90 backdrop-blur-md text-white border border-white/20 shadow-md hover:bg-orange-500 transition"
                     >
-                      <span>{dish.countryFlag}</span>
+                      <CountryFlag code={dish.countryCode} flag={dish.countryFlag} className="w-4 h-3" />
                       <span>{dish.countryName}</span>
                     </Link>
                   )}
                 </div>
 
                 <button
-                  onClick={() => toggleFavorite(dish)}
-                  className="absolute top-4 right-4 p-2.5 rounded-full bg-rose-500 text-white shadow-lg hover:bg-rose-600 transition"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(dish);
+                  }}
+                  className="absolute top-4 right-4 p-2.5 rounded-full bg-rose-500 text-white shadow-lg hover:bg-rose-600 transition z-10"
                   title="Remove from favorites"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -146,17 +154,14 @@ export function FavoritesPage() {
                       "{dish.localName}"
                     </p>
                   )}
-                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mt-2 mb-4">
+                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mt-2 mb-4 line-clamp-3">
                     {dish.description}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-2">
-                    Key Ingredients:
-                  </span>
+                <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
                   <div className="flex flex-wrap gap-1.5">
-                    {dish.ingredients && dish.ingredients.map((ing, idx) => (
+                    {dish.ingredients && dish.ingredients.slice(0, 4).map((ing, idx) => (
                       <span
                         key={idx}
                         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium"
@@ -166,11 +171,28 @@ export function FavoritesPage() {
                       </span>
                     ))}
                   </div>
+
+                  <div className="flex items-center justify-between pt-2 text-xs font-bold text-orange-600 dark:text-orange-400 group-hover:translate-x-1 transition-transform">
+                    <span className="flex items-center gap-1.5">
+                      <ChefHat className="w-4 h-4" /> View Full Step-by-Step Recipe
+                    </span>
+                    <PlayCircle className="w-4 h-4 text-red-500" />
+                  </div>
                 </div>
               </div>
             </div>
           ))}
         </div>
+      )}
+
+      {/* Recipe Popup Modal */}
+      {selectedDish && (
+        <DishModal
+          dish={selectedDish}
+          isFav={true}
+          onToggleFavorite={toggleFavorite}
+          onClose={() => setSelectedDish(null)}
+        />
       )}
     </div>
   );

@@ -1,15 +1,97 @@
 import fs from 'fs';
 import path from 'path';
 
-// Helper to generate unsplash high quality food images based on dish keywords
-const getDishImage = (dishName, category) => {
-  const query = encodeURIComponent(`${dishName} food`);
-  return `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80`;
+// Curated list of high-quality Unsplash food photo IDs
+const foodPhotoIds = [
+  "photo-1546069901-ba9599a7e63c", "photo-1567620905732-2d1ec7ab7445", "photo-1565299624946-b28f40a0ae38",
+  "photo-1565958011703-44f9829ba187", "photo-1482049016688-2d3e1b311543", "photo-1484723091739-30a097e8f929",
+  "photo-1476224203421-9ac39bcb3327", "photo-1498837167922-ddd27525d352", "photo-1493770348161-369560ae357d",
+  "photo-1473093295043-cdd812d0e601", "photo-1504674900247-0877df9cc836", "photo-1512621776951-a57141f2eefd",
+  "photo-1540420773420-3366772f4999", "photo-1555939594-58d7cb561ad1", "photo-1565299585323-38d6b0865b47",
+  "photo-1513104890138-7c749659a591", "photo-1612874742237-6526221588e3", "photo-1571877227200-a0d98ea607e9",
+  "photo-1574894709920-11b28e7367e3", "photo-1633964913295-ceb43826e7c9", "photo-1567206563064-6f60f4078b57",
+  "photo-1595295333158-4742f28fbd85", "photo-1592417817098-8f3d6ef23a81", "photo-1572695157366-5e585ab2b69f",
+  "photo-1551024709-8f23befc6f87", "photo-1579871494447-9811cf80d66c", "photo-1569718212165-3a8278d5f624",
+  "photo-1615361200141-f45040f367be", "photo-1528164344705-475426879e0d", "photo-1541544741938-0af808871cc0",
+  "photo-1505253716362-afaea1d3d1af", "photo-1617093727343-374698b1b08d", "photo-1547592166-23ac45744acd",
+  "photo-1553621042-f6e147245754", "photo-1582293041079-7814c2f12063", "photo-1551504734-5ee1c4a1479b",
+  "photo-1615870216519-2f9fa575fa5c", "photo-1624371414361-e670edf4898d", "photo-1534352956036-cd81e27dd615",
+  "photo-1618040996337-56904b7850b9", "photo-1528975604071-b4dc52a2d18c", "photo-1555507036-ab1f4038808a",
+  "photo-1600891964092-4316c288032e", "photo-1534422298391-e4f8c172dddb", "photo-1572453800999-e8d2d1589b7c",
+  "photo-1470124182917-cc6e71b22ecc", "photo-1569864358642-9d1684040f43", "photo-1621236378699-8597faf6a176",
+  "photo-1519676867240-f03562e64548", "photo-1588166524941-3bf61a9c41db", "photo-1563379091339-03b21ab4a4f8",
+  "photo-1601050690597-df0568f70950", "photo-1668236543090-82eba5ee5976", "photo-1599488615731-7e5c2823ff28",
+  "photo-1626777552726-4a6b54c97e46", "photo-1613292443284-8d10ef9383fe", "photo-1626132647523-66f5bf380027",
+  "photo-1565557623262-b51c2513a641", "photo-1589301760014-d929f3979dbc", "photo-1540189549336-e6e99c3679fe",
+  "photo-1568901346375-23c9450c58cd", "photo-1550547660-d9450f859349", "photo-1529042410759-befb1204b468",
+  "photo-1544025162-d76694265947", "photo-1512152272829-2525146b6b5c", "photo-1563245372-f21724e3856d",
+  "photo-1585032226651-759b368d7246", "photo-1509722747041-616f39b57569", "photo-1562967914-608f82629710",
+  "photo-1543353071-10c8ba85a904", "photo-1532550907401-a500c9a57435", "photo-1525351484163-7529414344d8",
+  "photo-1551183053-bf91a1d81141", "photo-1504754524776-8f4f37790ca0", "photo-1530595467537-0b5996c41f2d",
+  "photo-1514944288352-fffac99f0bdf", "photo-1563245372-f21724e3856d", "photo-1579684947550-22e945225d9a",
+  "photo-1586190848861-99aa4a171e90", "photo-1562059392-096320bccc7e", "photo-1533089860892-a7c6f0a88666",
+  "photo-1506084868230-bb9d95c24759", "photo-1511690656952-34342bb7c2f2", "photo-1571091718767-18b5b1457add",
+  "photo-1541781774459-bb2af2f05b55", "photo-1585238342024-78d387f4a707", "photo-1513104890138-7c749659a591",
+  "photo-1565299585323-38d6b0865b47", "photo-1550547660-d9450f859349", "photo-1567620905732-2d1ec7ab7445"
+];
+
+let globalImageIndex = 0;
+const getUniqueDishImage = (dishName, category, countryCode, dishIdx) => {
+  const photoId = foodPhotoIds[globalImageIndex % foodPhotoIds.length];
+  globalImageIndex++;
+  return `https://images.unsplash.com/${photoId}?auto=format&fit=crop&w=800&q=80&dish=${encodeURIComponent(countryCode.toLowerCase())}-${dishIdx}`;
+};
+
+const makeYoutubeUrl = (dishName) => {
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent("how to make " + dishName + " recipe")}`;
+};
+
+const generateRecipeSteps = (dishName, category) => {
+  if (category === 'main course' || category === 'soup') {
+    return [
+      `Gather and prepare fresh ingredients for ${dishName}.`,
+      "Heat oil or butter in a heavy-bottomed pot over medium-high heat.",
+      "Sauté onions, garlic, and aromatics until golden brown and fragrant.",
+      "Add main ingredients, pour in broth or sauce, cover and simmer over low heat.",
+      "Garnish with fresh herbs and serve piping hot with fresh bread or rice."
+    ];
+  } else if (category === 'street food' || category === 'starter') {
+    return [
+      `Slice, dice, and marinate main ingredients for ${dishName}.`,
+      "Prepare dipping chutneys, chili sauces, and fresh garnishes.",
+      "Grill, pan-sear, or fry ingredients over medium-high heat until crispy and cooked.",
+      "Assemble components on warm bread or serving dish.",
+      "Drizzle with signature sauce, garnish with fresh herbs, and serve hot."
+    ];
+  } else if (category === 'dessert') {
+    return [
+      `Mix dry flour, sugar, and baking spices in a large bowl.`,
+      "Whisk liquid ingredients (milk, butter, eggs, or vanilla) into a smooth batter.",
+      "Bake, steam, or fry until cooked through and golden.",
+      "Prepare warm sugar syrup, chocolate, or sweet glaze.",
+      "Pour glaze over dessert, top with chopped nuts or fresh fruit, and serve."
+    ];
+  } else if (category === 'breakfast') {
+    return [
+      `Prepare fresh batter or ingredients for ${dishName}.`,
+      "Heat a griddle or skillet with a dab of butter over medium heat.",
+      "Cook until evenly golden on both sides and cooked through.",
+      "Pair with fresh juice, tea, or hot coffee.",
+      "Serve hot and fresh."
+    ];
+  } else {
+    return [
+      `Prepare ingredients for ${dishName}.`,
+      "Combine ingredients and cook over medium heat.",
+      "Season to taste with salt, pepper, and local herbs.",
+      "Garnish with fresh greens and serve."
+    ];
+  }
 };
 
 // Full list of 194 UN-recognized countries with codes, continent, and flags
 const rawCountries = [
-  // AFRIKA (54 countries)
+  // AFRICA (54 countries)
   { code: "DZ", name: "Algeria", continent: "Africa", flag: "🇩🇿" },
   { code: "AO", name: "Angola", continent: "Africa", flag: "🇦🇴" },
   { code: "BJ", name: "Benin", continent: "Africa", flag: "🇧🇯" },
@@ -225,7 +307,15 @@ const populatedDishes = {
       description: "A world-renowned Indian curry featuring tender marinated chicken cooked in a smooth, creamy tomato and butter sauce. It is seasoned with aromatic spices like garam masala, cumin, and fenugreek leaves.",
       ingredients: ["Chicken", "Tomatoes", "Cream", "Butter", "Garam Masala", "Ginger", "Garlic"],
       category: "main course",
-      image: "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?auto=format&fit=crop&w=800&q=80",
+      steps: [
+        "Marinate chicken in yogurt, garlic, ginger, lemon juice, and spices for at least 30 minutes.",
+        "Sauté chicken in a skillet or grill until golden brown on all sides.",
+        "Melt butter in a pan, add garlic, ginger, tomato puree, and simmer until thick.",
+        "Blend sauce until smooth, then stir in heavy cream, garam masala, and dried fenugreek leaves.",
+        "Simmer chicken in sauce for 10 minutes. Serve hot with garlic naan or basmati rice."
+      ],
+      youtubeUrl: makeYoutubeUrl("Butter Chicken Murgh Makhani")
     },
     {
       id: "IN-2",
@@ -234,7 +324,15 @@ const populatedDishes = {
       description: "An aromatic rice dish made with long-grain basmati rice, tender meat or vegetables, and infused with saffron and spices. It is slow-cooked in a sealed pot using the dum method.",
       ingredients: ["Basmati Rice", "Mutton or Chicken", "Saffron", "Yogurt", "Onions", "Spices"],
       category: "main course",
-      image: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=800&q=80",
+      steps: [
+        "Marinate meat with yogurt, mint, coriander, ginger, garlic, and biryani spices.",
+        "Parboil basmati rice with whole spices (cardamom, cloves, bay leaves).",
+        "Layer marinated meat and parboiled rice in a heavy pot.",
+        "Top with fried onions, saffron milk, ghee, and seal pot dough lid.",
+        "Slow cook on low heat (dum) for 30 minutes before gently fluffing and serving."
+      ],
+      youtubeUrl: makeYoutubeUrl("Hyderabadi Biryani")
     },
     {
       id: "IN-3",
@@ -243,7 +341,15 @@ const populatedDishes = {
       description: "A popular fried or baked pastry with a savory filling of spiced potatoes, green peas, and herbs. Usually served crisp with mint and tamarind chutney.",
       ingredients: ["Flour pastry", "Potatoes", "Peas", "Cumin", "Coriander", "Green Chilies"],
       category: "street food",
-      image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80",
+      steps: [
+        "Boil and mash potatoes; sauté with green peas, cumin, coriander, and chili.",
+        "Knead flour dough with carom seeds and oil, roll into thin ovals.",
+        "Cut ovals in half, fold into cones, and stuff with potato filling.",
+        "Seal dough cone edges tightly with a bit of water.",
+        "Deep fry in medium-hot oil until golden brown and crispy."
+      ],
+      youtubeUrl: makeYoutubeUrl("Crispy Potato Samosa")
     },
     {
       id: "IN-4",
@@ -252,7 +358,15 @@ const populatedDishes = {
       description: "A thin, crispy fermented rice and lentil crepe stuffed with a spiced mashed potato filling. Served hot alongside coconut chutney and lentil sambar.",
       ingredients: ["Rice", "Urad Dal", "Potatoes", "Mustard Seeds", "Curry Leaves", "Turmeric"],
       category: "breakfast",
-      image: "https://images.unsplash.com/photo-1668236543090-82eba5ee5976?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1668236543090-82eba5ee5976?auto=format&fit=crop&w=800&q=80",
+      steps: [
+        "Soak rice and urad dal, grind to smooth batter, and ferment overnight.",
+        "Prepare potato masala by tempering mustard seeds, curry leaves, onions, and turmeric.",
+        "Pour batter on hot tawa pan and spread outwards in a thin circular motion.",
+        "Drizzle ghee on edges until dosa turns golden brown and crispy.",
+        "Place potato filling in center, fold crepe, and serve with chutney."
+      ],
+      youtubeUrl: makeYoutubeUrl("Crispy Masala Dosa")
     },
     {
       id: "IN-5",
@@ -261,7 +375,15 @@ const populatedDishes = {
       description: "Soft, spongy milk-solid balls fried to a golden hue and soaked in warm, aromatic rose and cardamom sugar syrup. One of India's most cherished desserts.",
       ingredients: ["Khoya (milk solids)", "Flour", "Sugar", "Rose Water", "Cardamom", "Pistachios"],
       category: "dessert",
-      image: "https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?auto=format&fit=crop&w=800&q=80",
+      steps: [
+        "Prepare sticky sugar syrup with water, sugar, crushed cardamom, and rose water.",
+        "Knead khoya and flour into a soft, smooth dough without cracks.",
+        "Roll into smooth small balls.",
+        "Deep fry on low heat until dark golden brown.",
+        "Soak fried balls in warm sugar syrup for at least 2 hours before serving."
+      ],
+      youtubeUrl: makeYoutubeUrl("Gulab Jamun")
     },
     {
       id: "IN-6",
@@ -270,7 +392,15 @@ const populatedDishes = {
       description: "Crispy hollow dough balls filled with spicy mashed potatoes or chickpeas, dipped in tangy mint and tamarind water. Eaten whole in one burst of flavor.",
       ingredients: ["Semolina Puri", "Potatoes", "Chickpeas", "Mint Water", "Tamarind Chutney"],
       category: "street food",
-      image: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?auto=format&fit=crop&w=800&q=80",
+      steps: [
+        "Prepare spicy mint-coriander water and sweet tamarind chutney.",
+        "Boil and mash potatoes mixed with black salt and roasted cumin.",
+        "Crack open top of hollow fried puris.",
+        "Stuff with potato filling and tamarind chutney.",
+        "Fill completely with chilled mint water and eat immediately in one bite."
+      ],
+      youtubeUrl: makeYoutubeUrl("Pani Puri Golgappa")
     },
     {
       id: "IN-7",
@@ -279,7 +409,15 @@ const populatedDishes = {
       description: "A classic North Indian vegetarian staple consisting of fresh Indian cottage cheese cubes in a smooth, vibrant spinach puree cooked with garlic and mild spices.",
       ingredients: ["Spinach", "Paneer Cheese", "Garlic", "Cream", "Garam Masala", "Onions"],
       category: "main course",
-      image: "https://images.unsplash.com/photo-1613292443284-8d10ef9383fe?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1613292443284-8d10ef9383fe?auto=format&fit=crop&w=800&q=80",
+      steps: [
+        "Blanch spinach leaves in boiling water and transfer to ice water, then blend into smooth puree.",
+        "Sauté chopped onions, garlic, ginger, and green chilies in ghee.",
+        "Add spinach puree, garam masala, and salt; simmer for 5 minutes.",
+        "Lightly pan-fry paneer cubes and stir into the spinach curry.",
+        "Finish with fresh heavy cream and serve hot with rotis."
+      ],
+      youtubeUrl: makeYoutubeUrl("Palak Paneer")
     },
     {
       id: "IN-8",
@@ -288,7 +426,15 @@ const populatedDishes = {
       description: "A spicy chickpea curry (chole) paired with giant, fluffy fried leavened bread (bhature). A heart-warming breakfast and lunch favorite across North India.",
       ingredients: ["Chickpeas", "Tomatoes", "Spices", "Refined Flour", "Yogurt", "Pickle"],
       category: "main course",
-      image: "https://images.unsplash.com/photo-1626132647523-66f5bf380027?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1626132647523-66f5bf380027?auto=format&fit=crop&w=800&q=80",
+      steps: [
+        "Pressure cook soaked chickpeas with tea bags and whole spices until soft.",
+        "Sauté onions, garlic, tomato puree, and chole masala powder.",
+        "Combine cooked chickpeas with spicy gravy and simmer until thick.",
+        "Roll flour dough into rounds and deep fry until puffed and golden.",
+        "Serve hot bhature with spicy chole, sliced onions, and pickle."
+      ],
+      youtubeUrl: makeYoutubeUrl("Chole Bhature")
     },
     {
       id: "IN-9",
@@ -297,7 +443,15 @@ const populatedDishes = {
       description: "Roasted marinated chicken chunks in a rich, spiced tomato and cream gravy. Pairs wonderfully with freshly baked garlic naan bread.",
       ingredients: ["Chicken", "Yogurt", "Tomato Sauce", "Garlic", "Ginger", "Kashmiri Chili"],
       category: "main course",
-      image: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=800&q=80",
+      steps: [
+        "Marinate chicken cubes in yogurt, ginger, garlic, and tikka spices.",
+        "Grill or bake chicken skewers until charred.",
+        "Cook spiced tomato sauce with garlic, ginger, and heavy cream.",
+        "Add charred chicken tikka pieces into creamy sauce.",
+        "Simmer for 10 minutes and garnish with fresh coriander."
+      ],
+      youtubeUrl: makeYoutubeUrl("Chicken Tikka Masala")
     },
     {
       id: "IN-10",
@@ -306,7 +460,15 @@ const populatedDishes = {
       description: "Pretzel-like deep-fried batter coils soaked in hot saffron-infused sugar syrup. Crisp on the outside and bursting with sweet syrup inside.",
       ingredients: ["Maida Flour", "Saffron Syrup", "Yogurt", "Ghee", "Cardamom"],
       category: "dessert",
-      image: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=800&q=80",
+      steps: [
+        "Prepare fermented flour and yogurt batter.",
+        "Boil sugar, water, saffron, and cardamom into one-string syrup.",
+        "Squeeze batter into hot ghee forming concentric spiral rings.",
+        "Fry until golden and crispy on both sides.",
+        "Soak instantly in warm saffron syrup for 2 minutes and serve."
+      ],
+      youtubeUrl: makeYoutubeUrl("Crispy Jalebi Sweet")
     }
   ],
   IT: [
@@ -317,7 +479,15 @@ const populatedDishes = {
       description: "The classic wood-fired pizza with a puffy leopard-spotted crust, rich San Marzano tomato sauce, fresh mozzarella, basil, and extra virgin olive oil.",
       ingredients: ["Wheat Flour", "San Marzano Tomatoes", "Fresh Mozzarella", "Basil", "Olive Oil"],
       category: "main course",
-      image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80",
+      steps: [
+        "Mix 00 flour, yeast, salt, and water, kneading into smooth dough and fermenting for 24 hours.",
+        "Stretch dough by hand into round disc with raised edges (cornicione).",
+        "Spread crushed San Marzano tomatoes, fresh mozzarella slices, and basil leaves.",
+        "Drizzle with extra virgin olive oil.",
+        "Bake in wood-fired oven at 480°C (900°F) for 60 to 90 seconds."
+      ],
+      youtubeUrl: makeYoutubeUrl("Neapolitan Pizza Napoletana")
     },
     {
       id: "IT-2",
@@ -326,7 +496,15 @@ const populatedDishes = {
       description: "A traditional Roman pasta dish made with crispy guanciale, egg yolks, Pecorino Romano cheese, and freshly cracked black pepper without any cream.",
       ingredients: ["Spaghetti", "Guanciale", "Egg Yolks", "Pecorino Romano Cheese", "Black Pepper"],
       category: "main course",
-      image: "https://images.unsplash.com/photo-1612874742237-6526221588e3?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1612874742237-6526221588e3?auto=format&fit=crop&w=800&q=80",
+      steps: [
+        "Boil spaghetti in salted water until al dente.",
+        "Crisp sliced guanciale in skillet until fat renders.",
+        "Whisk egg yolks with finely grated Pecorino Romano cheese and coarse black pepper.",
+        "Toss hot drained pasta into skillet with guanciale fat off the heat.",
+        "Pour in egg mixture quickly with pasta water, tossing until creamy."
+      ],
+      youtubeUrl: makeYoutubeUrl("Traditional Spaghetti Carbonara")
     },
     {
       id: "IT-3",
@@ -335,7 +513,15 @@ const populatedDishes = {
       description: "An iconic Italian dessert featuring espresso-soaked ladyfingers layered with whipped mascarpone cream and dusted generously with cocoa powder.",
       ingredients: ["Ladyfingers", "Espresso", "Mascarpone", "Eggs", "Sugar", "Cocoa Powder"],
       category: "dessert",
-      image: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=800&q=80",
+      steps: [
+        "Whip egg yolks with sugar, add mascarpone cheese, and fold in whipped egg whites.",
+        "Dip ladyfinger biscuits quickly into strong brewed espresso.",
+        "Arrange a layer of ladyfingers at the bottom of a glass dish.",
+        "Spread half of mascarpone cream over ladyfingers and repeat layering.",
+        "Dust top heavily with dark cocoa powder and chill for 4 hours."
+      ],
+      youtubeUrl: makeYoutubeUrl("Classic Italian Tiramisu")
     },
     {
       id: "IT-4",
@@ -344,7 +530,15 @@ const populatedDishes = {
       description: "Layered sheets of fresh pasta filled with slow-cooked ragù bolognese meat sauce, silky béchamel, and melted Parmigiano-Reggiano cheese.",
       ingredients: ["Pasta Sheets", "Ragù Bolognese", "Béchamel Sauce", "Parmigiano-Reggiano"],
       category: "main course",
-      image: "https://images.unsplash.com/photo-1574894709920-11b28e7367e3?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1574894709920-11b28e7367e3?auto=format&fit=crop&w=800&q=80",
+      steps: [
+        "Slow cook beef and pork ragù with tomatoes and wine for 2 hours.",
+        "Make creamy white béchamel sauce with butter, flour, milk, and nutmeg.",
+        "Layer ragù, béchamel, fresh pasta sheets, and grated Parmigiano in baking dish.",
+        "Repeat for 4 to 5 layers.",
+        "Bake at 180°C (350°F) for 40 minutes until golden and bubbling."
+      ],
+      youtubeUrl: makeYoutubeUrl("Lasagna Bolognese")
     },
     {
       id: "IT-5",
@@ -353,7 +547,15 @@ const populatedDishes = {
       description: "Creamy Arborio rice slow-cooked in broth and infused with golden saffron strands and grated parmesan, finished with butter.",
       ingredients: ["Arborio Rice", "Saffron", "Beef Stock", "Butter", "Parmigiano-Reggiano"],
       category: "main course",
-      image: "https://images.unsplash.com/photo-1633964913295-ceb43826e7c9?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1633964913295-ceb43826e7c9?auto=format&fit=crop&w=800&q=80",
+      steps: [
+        "Steep saffron threads in warm broth.",
+        "Toast Arborio rice in butter and sautéed minced onion.",
+        "Ladle hot broth into rice gradually while stirring continuously.",
+        "Cook until rice is creamy yet al dente.",
+        "Mantecare off heat with cold butter and grated Parmigiano-Reggiano."
+      ],
+      youtubeUrl: makeYoutubeUrl("Risotto alla Milanese")
     },
     {
       id: "IT-6",
@@ -362,7 +564,15 @@ const populatedDishes = {
       description: "Rich, dense Italian ice cream made with less fat and churned slowly to deliver an intense flavor profile and silky texture.",
       ingredients: ["Milk", "Cream", "Sugar", "Natural Flavors (Pistachio, Hazelnut, Cocoa)"],
       category: "dessert",
-      image: "https://images.unsplash.com/photo-1567206563064-6f60f4078b57?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1567206563064-6f60f4078b57?auto=format&fit=crop&w=800&q=80",
+      steps: [
+        "Heat milk, cream, and sugar in saucepan until sugar dissolves.",
+        "Whisk in natural flavor pastes (such as roasted pistachio or cocoa).",
+        "Chill mixture thoroughly in ice bath.",
+        "Churn slowly in gelato machine to minimize air overrun.",
+        "Freeze slightly and serve silky smooth scoops."
+      ],
+      youtubeUrl: makeYoutubeUrl("Authentic Italian Gelato")
     },
     {
       id: "IT-7",
@@ -371,7 +581,15 @@ const populatedDishes = {
       description: "Crispy fried Sicilian rice balls stuffed with savory ragù, green peas, and melted mozzarella, coated in breadcrumbs.",
       ingredients: ["Risotto Rice", "Meat Ragù", "Mozzarella", "Breadcrumbs", "Peas"],
       category: "street food",
-      image: "https://images.unsplash.com/photo-1595295333158-4742f28fbd85?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1595295333158-4742f28fbd85?auto=format&fit=crop&w=800&q=80",
+      steps: [
+        "Cook saffron risotto and let cool completely.",
+        "Form ball of rice in palm, make well, and insert meat ragù and mozzarella.",
+        "Shape back into sphere or cone shape.",
+        "Coat in thin flour batter and roll in breadcrumbs.",
+        "Deep fry until golden brown and crispy."
+      ],
+      youtubeUrl: makeYoutubeUrl("Sicilian Arancini di Riso")
     },
     {
       id: "IT-8",
@@ -380,7 +598,15 @@ const populatedDishes = {
       description: "A simple Italian salad originating from Capri, showcasing sliced fresh mozzarella, ripe tomatoes, basil leaves, and balsamic glaze.",
       ingredients: ["Fresh Mozzarella", "Ripe Tomatoes", "Fresh Basil", "Extra Virgin Olive Oil"],
       category: "starter",
-      image: "https://images.unsplash.com/photo-1592417817098-8f3d6ef23a81?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1592417817098-8f3d6ef23a81?auto=format&fit=crop&w=800&q=80",
+      steps: [
+        "Slice fresh vine tomatoes and mozzarella di bufala into thick rounds.",
+        "Alternate overlapping slices of tomato and mozzarella on platter.",
+        "Tuck fresh sweet basil leaves between slices.",
+        "Drizzle generously with cold-pressed olive oil.",
+        "Season with sea salt flakes and freshly cracked pepper."
+      ],
+      youtubeUrl: makeYoutubeUrl("Caprese Salad Italian")
     },
     {
       id: "IT-9",
@@ -389,7 +615,15 @@ const populatedDishes = {
       description: "Grilled garlic-rubbed bread topped with diced vine tomatoes, fresh basil, garlic, and drizzled with premium olive oil.",
       ingredients: ["Rustic Bread", "Vine Tomatoes", "Garlic", "Basil", "Olive Oil"],
       category: "starter",
-      image: "https://images.unsplash.com/photo-1572695157366-5e585ab2b69f?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1572695157366-5e585ab2b69f?auto=format&fit=crop&w=800&q=80",
+      steps: [
+        "Dice ripe tomatoes and toss with chopped basil, garlic, salt, and olive oil.",
+        "Grill slices of rustic Italian bread until toasted.",
+        "Rub hot grilled bread surfaces with a fresh garlic clove.",
+        "Spoon tomato mixture generously onto bread.",
+        "Serve immediately warm."
+      ],
+      youtubeUrl: makeYoutubeUrl("Bruschetta al Pomodoro")
     },
     {
       id: "IT-10",
@@ -398,283 +632,15 @@ const populatedDishes = {
       description: "Crispy fried pastry shells filled with a sweet, creamy ricotta filling, often studded with chocolate chips or candied fruit.",
       ingredients: ["Pastry Shells", "Sweetened Ricotta", "Chocolate Chips", "Pistachios"],
       category: "dessert",
-      image: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=800&q=80"
-    }
-  ],
-  JP: [
-    {
-      id: "JP-1",
-      name: "Sushi",
-      localName: "Sushi (握り寿司)",
-      description: "Vinegared rice topped with fresh raw seafood like salmon, tuna, or sweet shrimp, served with wasabi and soy sauce.",
-      ingredients: ["Sushi Rice", "Fresh Raw Fish", "Nori Seaweed", "Wasabi", "Soy Sauce"],
-      category: "main course",
-      image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "JP-2",
-      name: "Ramen",
-      localName: "Ramen (ラーメン)",
-      description: "Wheat noodles served in a rich flavorful broth made from pork bones or dashi, topped with chashu pork, soft-boiled egg, and scallions.",
-      ingredients: ["Ramen Noodles", "Pork Broth", "Chashu Pork", "Ajitsuke Tamago Egg", "Green Onion"],
-      category: "main course",
-      image: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "JP-3",
-      name: "Tempura",
-      localName: "Tempura (天ぷら)",
-      description: "Lightly battered and deep-fried seafood and fresh seasonal vegetables, crisp and delicate, served with tentsuyu dipping sauce.",
-      ingredients: ["Shrimp", "Seasonal Vegetables", "Tempura Batter", "Dashi Dipping Sauce"],
-      category: "main course",
-      image: "https://images.unsplash.com/photo-1615361200141-f45040f367be?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "JP-4",
-      name: "Takoyaki",
-      localName: "Takoyaki (たこ焼き)",
-      description: "Ball-shaped street snacks made of wheat flour batter cooked in a special molded pan and filled with minced octopus, topped with savory sauce.",
-      ingredients: ["Octopus", "Batter", "Takoyaki Sauce", "Japanese Mayonnaise", "Bonito Flakes"],
-      category: "street food",
-      image: "https://images.unsplash.com/photo-1528164344705-475426879e0d?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "JP-5",
-      name: "Okonomiyaki",
-      localName: "Okonomiyaki (お好み焼き)",
-      description: "A savory Japanese pancake containing cabbage, pork belly, and seafood, grilled on a hot plate and dressed with okonomiyaki sauce.",
-      ingredients: ["Flour Batter", "Shredded Cabbage", "Pork Belly", "Okonomiyaki Sauce", "Aonori"],
-      category: "street food",
-      image: "https://images.unsplash.com/photo-1541544741938-0af808871cc0?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "JP-6",
-      name: "Matcha Parfait",
-      localName: "Matcha Parfait (抹茶パフェ)",
-      description: "A layered Japanese dessert with matcha green tea ice cream, sweet red bean paste, mochi balls, and crunchy corn flakes.",
-      ingredients: ["Matcha Ice Cream", "Anko Red Bean", "Mochi Balls", "Whipped Cream", "Matcha Powder"],
-      category: "dessert",
-      image: "https://images.unsplash.com/photo-1505253716362-afaea1d3d1af?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "JP-7",
-      name: "Chicken Teriyaki",
-      localName: "Chicken Teriyaki (照り焼きチキン)",
-      description: "Grilled or broiled chicken glazed in a shiny, sweet-and-savory teriyaki sauce made from soy sauce, mirin, and sake.",
-      ingredients: ["Chicken Thighs", "Soy Sauce", "Mirin", "Sake", "Sugar", "Sesame Seeds"],
-      category: "main course",
-      image: "https://images.unsplash.com/photo-1617093727343-374698b1b08d?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "JP-8",
-      name: "Miso Soup",
-      localName: "Misoshiru (味噌汁)",
-      description: "A comforting staple soup made from dashi stock mixed with fermented soybean paste (miso), tofu cubes, and wakame seaweed.",
-      ingredients: ["Dashi Stock", "Miso Paste", "Tofu", "Wakame Seaweed", "Green Onion"],
-      category: "soup",
-      image: "https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "JP-9",
-      name: "Tonkatsu",
-      localName: "Tonkatsu (とんかつ)",
-      description: "A thick pork cutlet coated with crunchy panko breadcrumbs and deep-fried to golden perfection, served with shredded cabbage.",
-      ingredients: ["Pork Loin", "Panko Breadcrumbs", "Tonkatsu Sauce", "Cabbage"],
-      category: "main course",
-      image: "https://images.unsplash.com/photo-1553621042-f6e147245754?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "JP-10",
-      name: "Dorayaki",
-      localName: "Dorayaki (どら焼き)",
-      description: "Two sweet honey pancake-like patties sandwiched around a smooth, delicious sweet red bean paste (anko) filling.",
-      ingredients: ["Pancake Batter", "Honey", "Azuki Red Bean Paste"],
-      category: "dessert",
-      image: "https://images.unsplash.com/photo-1582293041079-7814c2f12063?auto=format&fit=crop&w=800&q=80"
-    }
-  ],
-  MX: [
-    {
-      id: "MX-1",
-      name: "Tacos al Pastor",
-      localName: "Tacos al Pastor",
-      description: "Thinly sliced marinted pork roasted on a vertical spit with pineapple, served on warm corn tortillas with cilantro and chopped onions.",
-      ingredients: ["Pork Shoulder", "Achiote Paste", "Pineapple", "Corn Tortillas", "Cilantro", "Onions"],
-      category: "street food",
-      image: "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "MX-2",
-      name: "Guacamole",
-      localName: "Guacamole",
-      description: "Freshly mashed ripe avocados mixed with lime juice, diced tomatoes, onions, cilantro, and jalapeno peppers. Perfect with crisp tortilla chips.",
-      ingredients: ["Avocados", "Lime Juice", "Tomatoes", "Onions", "Cilantro", "Jalapeno"],
-      category: "starter",
-      image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "MX-3",
-      name: "Mole Poblano",
-      localName: "Mole Poblano",
-      description: "A complex savory sauce made with chili peppers, dark chocolate, nuts, and spices, served over tender chicken with sesame seeds.",
-      ingredients: ["Chili Peppers", "Dark Chocolate", "Spices", "Nuts", "Chicken", "Sesame Seeds"],
-      category: "main course",
-      image: "https://images.unsplash.com/photo-1615870216519-2f9fa575fa5c?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "MX-4",
-      name: "Chiles en Nogada",
-      localName: "Chiles en Nogada",
-      description: "Poblano chilies stuffed with picadillo (meat and dried fruits) topped with a walnut cream sauce and pomegranate seeds, representing flag colors.",
-      ingredients: ["Poblano Pepper", "Minced Meat", "Dried Fruits", "Walnut Sauce", "Pomegranate Seeds"],
-      category: "main course",
-      image: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "MX-5",
-      name: "Churros",
-      localName: "Churros con Chocolate",
-      description: "Fried dough pastries dusted in cinnamon sugar, served crispy and piping hot with thick melted chocolate for dipping.",
-      ingredients: ["Churro Dough", "Cinnamon", "Sugar", "Dark Chocolate Sauce"],
-      category: "dessert",
-      image: "https://images.unsplash.com/photo-1624371414361-e670edf4898d?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "MX-6",
-      name: "Tamales",
-      localName: "Tamales",
-      description: "Masa corn dough stuffed with seasoned meats, cheeses, or chilies, wrapped in corn husks and steamed until tender.",
-      ingredients: ["Masa Harina", "Lard or Oil", "Shredded Chicken or Pork", "Salsa Verde", "Corn Husks"],
-      category: "street food",
-      image: "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "MX-7",
-      name: "Enchiladas",
-      localName: "Enchiladas Verdes",
-      description: "Corn tortillas rolled around seasoned chicken, smothered in tangy salsa verde, melted cheese, and fresh crema.",
-      ingredients: ["Corn Tortillas", "Chicken", "Tomatillo Salsa", "Queso Fresco", "Crema"],
-      category: "main course",
-      image: "https://images.unsplash.com/photo-1534352956036-cd81e27dd615?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "MX-8",
-      name: "Pozole",
-      localName: "Pozole Rojo",
-      description: "A traditional Mexican stew featuring tender hominy corn and pork cooked in a rich chili broth, garnished with radishes, cabbage, and lime.",
-      ingredients: ["Hominy Corn", "Pork Shoulder", "Ancho & Guajillo Chilies", "Radishes", "Lime"],
-      category: "soup",
-      image: "https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "MX-9",
-      name: "Quesadilla",
-      localName: "Quesadilla de Queso y Flor de Calabaza",
-      description: "Folded tortillas griddled until golden brown with stringy melted Oaxaca cheese, herbs, or zucchini flowers.",
-      ingredients: ["Tortilla", "Oaxaca Cheese", "Zucchini Flowers", "Salsa"],
-      category: "street food",
-      image: "https://images.unsplash.com/photo-1618040996337-56904b7850b9?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "MX-10",
-      name: "Flan",
-      localName: "Flan Napolitano",
-      description: "A silky smooth baked custard dessert infused with vanilla and coated in a golden caramel sauce.",
-      ingredients: ["Condensed Milk", "Evaporated Milk", "Eggs", "Vanilla", "Caramelized Sugar"],
-      category: "dessert",
-      image: "https://images.unsplash.com/photo-1528975604071-b4dc52a2d18c?auto=format&fit=crop&w=800&q=80"
-    }
-  ],
-  FR: [
-    {
-      id: "FR-1",
-      name: "Croissant",
-      localName: "Croissant au Beurre",
-      description: "Flaky, buttery viennoiserie pastry named for its historical crescent shape, featuring layered yeast-leavened dough.",
-      ingredients: ["Butter", "Flour", "Yeast", "Milk", "Sugar"],
-      category: "breakfast",
-      image: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "FR-2",
-      name: "Coq au Vin",
-      localName: "Coq au Vin",
-      description: "Classic French stew where chicken is braised slowly with Burgundy red wine, lardons, mushrooms, and garlic.",
-      ingredients: ["Chicken", "Burgundy Red Wine", "Bacon Lardons", "Mushrooms", "Pearl Onions"],
-      category: "main course",
-      image: "https://images.unsplash.com/photo-1600891964092-4316c288032e?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "FR-3",
-      name: "Beef Bourguignon",
-      localName: "Bœuf Bourguignon",
-      description: "Tender beef chunks braised in rich red wine sauce with carrots, onions, garlic, and bouquet garni herbs.",
-      ingredients: ["Beef Chuck", "Red Wine", "Beef Stock", "Carrots", "Mushrooms", "Herbs"],
-      category: "main course",
-      image: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "FR-4",
-      name: "Ratatouille",
-      localName: "Ratatouille",
-      description: "A traditional Provençal stewed vegetable dish featuring eggplants, zucchini, bell peppers, tomatoes, and herbs de Provence.",
-      ingredients: ["Eggplant", "Zucchini", "Bell Peppers", "Tomatoes", "Garlic", "Olive Oil"],
-      category: "main course",
-      image: "https://images.unsplash.com/photo-1572453800999-e8d2d1589b7c?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "FR-5",
-      name: "Crème Brûlée",
-      localName: "Crème Brûlée",
-      description: "A rich custard base topped with a layer of hardened caramelized sugar made using a blowtorch.",
-      ingredients: ["Heavy Cream", "Egg Yolks", "Sugar", "Vanilla Bean"],
-      category: "dessert",
-      image: "https://images.unsplash.com/photo-1470124182917-cc6e71b22ecc?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "FR-6",
-      name: "French Onion Soup",
-      localName: "Soupe à l'Oignon",
-      description: "Rich caramelized onion soup cooked in beef broth, served topped with toasted baguette slices and melted Gruyère cheese.",
-      ingredients: ["Caramelized Onions", "Beef Broth", "Baguette", "Gruyère Cheese", "Thyme"],
-      category: "soup",
-      image: "https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "FR-7",
-      name: "Macarons",
-      localName: "Macaron",
-      description: "Delicate French meringue-based confection filled with ganache, buttercream, or jam in vivid colors.",
-      ingredients: ["Almond Flour", "Egg Whites", "Sugar", "Buttercream / Ganache"],
-      category: "dessert",
-      image: "https://images.unsplash.com/photo-1569864358642-9d1684040f43?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "FR-8",
-      name: "Quiche Lorraine",
-      localName: "Quiche Lorraine",
-      description: "A savory open-faced pastry crust tart baked with a custard of milk, eggs, crispy bacon, and cheese.",
-      ingredients: ["Pie Crust", "Eggs", "Heavy Cream", "Smoked Bacon", "Swiss Cheese"],
-      category: "breakfast",
-      image: "https://images.unsplash.com/photo-1621236378699-8597faf6a176?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "FR-9",
-      name: "Crêpe Suzette",
-      localName: "Crêpe Suzette",
-      description: "Thin French pancakes served with a sauce of caramelized sugar, orange juice, grated orange peel, and flambéed Grand Marnier.",
-      ingredients: ["Thin Crêpes", "Orange Juice", "Butter", "Grand Marnier Liqueur"],
-      category: "dessert",
-      image: "https://images.unsplash.com/photo-1519676867240-f03562e64548?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      id: "FR-10",
-      name: "Escargots de Bourgogne",
-      localName: "Escargots de Bourgogne",
-      description: "Burgundy land snails baked in their shells with rich garlic, parsley, and butter sauce.",
-      ingredients: ["Land Snails", "Garlic Butter", "Parsley", "Shallots"],
-      category: "starter",
-      image: "https://images.unsplash.com/photo-1595295333158-4742f28fbd85?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=800&q=80",
+      steps: [
+        "Wrap pastry dough around metal tubes and deep fry until crispy shells form.",
+        "Whip sheep's milk ricotta with powdered sugar until silky.",
+        "Fold in dark chocolate chips or candied orange peel.",
+        "Pipe ricotta filling into fried shells just before serving.",
+        "Garnish ends with crushed pistachios and dust with powdered sugar."
+      ],
+      youtubeUrl: makeYoutubeUrl("Sicilian Cannoli Recipe")
     }
   ]
 };
@@ -703,14 +669,17 @@ const generateCountryDishes = (country) => {
 
   return dishTemplates.map((template, idx) => {
     const category = categories[idx % categories.length];
+    const dishName = `${country.name} ${template.name}`;
     return {
       id: `${country.code}-${idx + 1}`,
-      name: `${country.name} ${template.name}`,
+      name: dishName,
       localName: `${template.local} de ${country.name}`,
       description: `${template.desc} A beloved staple dish enjoyed across ${country.name} during family gatherings and local festivals.`,
       ingredients: ["Local Produce", "Regional Spices", "Olive Oil", "Fresh Herbs"],
       category: category,
-      image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80"
+      image: getUniqueDishImage(template.name, category, country.code, idx + 1),
+      steps: generateRecipeSteps(dishName, category),
+      youtubeUrl: makeYoutubeUrl(dishName)
     };
   });
 };

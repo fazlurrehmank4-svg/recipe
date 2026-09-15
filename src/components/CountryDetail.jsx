@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, toggleFavorite } from '../db/database';
-import { ArrowLeft, Heart, Utensils, Tag, Layers, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Heart, Utensils, Tag, Layers, CheckCircle, ChefHat, PlayCircle } from 'lucide-react';
+import { CountryFlag } from './CountryFlag';
+import { DishModal } from './DishModal';
 
 export function CountryDetail() {
   const { code } = useParams();
@@ -13,6 +15,7 @@ export function CountryDetail() {
   const favorites = useLiveQuery(() => db.favorites.toArray(), []);
 
   const [filterCategory, setFilterCategory] = useState('All');
+  const [selectedDish, setSelectedDish] = useState(null);
 
   if (!country || !dishes) {
     return (
@@ -55,9 +58,7 @@ export function CountryDetail() {
       <div className="relative overflow-hidden bg-gradient-to-r from-orange-500 via-amber-500 to-amber-600 rounded-3xl p-6 sm:p-10 text-white shadow-xl mb-8">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div className="flex items-center gap-5">
-            <span className="text-6xl sm:text-7xl drop-shadow-md select-none">
-              {country.flag}
-            </span>
+            <CountryFlag code={country.code} flag={country.flag} className="w-16 h-12 text-5xl shadow-md border border-white/20" />
             <div>
               <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-md text-xs font-bold rounded-full mb-2 uppercase tracking-wider">
                 {country.continent}
@@ -105,7 +106,8 @@ export function CountryDetail() {
           return (
             <div
               key={dish.id}
-              className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
+              onClick={() => setSelectedDish(dish)}
+              className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group cursor-pointer"
             >
               {/* Dish Image Header */}
               <div className="relative h-56 w-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
@@ -130,8 +132,11 @@ export function CountryDetail() {
 
                 {/* Favorite Bookmark Button */}
                 <button
-                  onClick={() => toggleFavorite(dish)}
-                  className={`absolute top-4 right-4 p-2.5 rounded-full backdrop-blur-md transition-all duration-200 shadow-lg ${
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(dish);
+                  }}
+                  className={`absolute top-4 right-4 p-2.5 rounded-full backdrop-blur-md transition-all duration-200 shadow-lg z-10 ${
                     isFav
                       ? 'bg-rose-500 text-white scale-110'
                       : 'bg-slate-900/60 text-white hover:bg-rose-500 hover:scale-110'
@@ -157,26 +162,35 @@ export function CountryDetail() {
                     )}
                   </div>
 
-                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
+                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4 line-clamp-3">
                     {dish.description}
                   </p>
                 </div>
 
-                {/* Ingredients List */}
-                <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-2">
-                    Key Ingredients:
-                  </span>
+                {/* Ingredients & View Recipe Action Footer */}
+                <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
                   <div className="flex flex-wrap gap-1.5">
-                    {dish.ingredients.map((ing, idx) => (
+                    {dish.ingredients.slice(0, 4).map((ing, idx) => (
                       <span
                         key={idx}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium"
                       >
                         <CheckCircle className="w-3 h-3 text-emerald-500" />
                         {ing}
                       </span>
                     ))}
+                    {dish.ingredients.length > 4 && (
+                      <span className="text-xs text-slate-400 font-medium self-center">
+                        +{dish.ingredients.length - 4} more
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 text-xs font-bold text-orange-600 dark:text-orange-400 group-hover:translate-x-1 transition-transform">
+                    <span className="flex items-center gap-1.5">
+                      <ChefHat className="w-4 h-4" /> View Full Step-by-Step Recipe
+                    </span>
+                    <PlayCircle className="w-4 h-4 text-red-500" />
                   </div>
                 </div>
               </div>
@@ -185,6 +199,16 @@ export function CountryDetail() {
           );
         })}
       </div>
+
+      {/* Dish Recipe Modal Popup */}
+      {selectedDish && (
+        <DishModal
+          dish={selectedDish}
+          isFav={favoriteIds.has(selectedDish.id)}
+          onToggleFavorite={toggleFavorite}
+          onClose={() => setSelectedDish(null)}
+        />
+      )}
     </div>
   );
 }
