@@ -3,7 +3,7 @@ import countriesData from '../data/countries.json';
 
 export const db = new Dexie('WorldFlavorsDB');
 
-db.version(3).stores({
+db.version(4).stores({
   countries: 'code, name, continent',
   dishes: 'id, countryCode, name, localName, category',
   favorites: 'id, countryCode, name, addedAt'
@@ -14,9 +14,10 @@ export async function initDatabase() {
     const countryCount = await db.countries.count();
     const dishCount = await db.dishes.count();
     const sampleDish = await db.dishes.first();
+    const ilCountry = await db.countries.get('IL');
 
     const auDumpling = await db.dishes.get('AU-5');
-    if (countryCount === 0 || dishCount === 0 || !sampleDish || !sampleDish.steps || (auDumpling && auDumpling.image.includes('photo-1541781774459-bb2af2f05b55'))) {
+    if (countryCount === 0 || dishCount === 0 || !sampleDish || !sampleDish.steps || ilCountry || (auDumpling && auDumpling.image.includes('photo-1541781774459-bb2af2f05b55'))) {
       console.log('Populating/Updating IndexedDB database...');
 
       const allCountries = countriesData.countries.map(c => ({

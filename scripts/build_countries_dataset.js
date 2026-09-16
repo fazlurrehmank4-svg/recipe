@@ -200,7 +200,6 @@ const rawCountries = [
   { code: "ID", name: "Indonesia", continent: "Asia", flag: "🇮🇩" },
   { code: "IR", name: "Iran", continent: "Asia", flag: "🇮🇷" },
   { code: "IQ", name: "Iraq", continent: "Asia", flag: "🇮🇶" },
-  { code: "IL", name: "Israel", continent: "Asia", flag: "🇮🇱" },
   { code: "JP", name: "Japan", continent: "Asia", flag: "🇯🇵" },
   { code: "JO", name: "Jordan", continent: "Asia", flag: "🇯🇴" },
   { code: "KZ", name: "Kazakhstan", continent: "Asia", flag: "🇰🇿" },
